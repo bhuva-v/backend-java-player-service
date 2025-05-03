@@ -4,6 +4,9 @@ import io.github.ollama4j.OllamaAPI;
 import io.github.ollama4j.exceptions.OllamaBaseException;
 import io.github.ollama4j.models.Model;
 import io.github.ollama4j.models.OllamaResult;
+import io.github.ollama4j.models.chat.OllamaChatMessageRole;
+import io.github.ollama4j.models.chat.OllamaChatRequestBuilder;
+import io.github.ollama4j.models.chat.OllamaChatRequestModel;
 import io.github.ollama4j.types.OllamaModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,16 +32,32 @@ public class ChatClientService {
     }
 
     public String chat() throws OllamaBaseException, IOException, InterruptedException {
-        String model = OllamaModelType.TINYLLAMA;
+        try {
+            String model = OllamaModelType.TINYLLAMA;
 
-        // https://ollama4j.github.io/ollama4j/intro
-        PromptBuilder promptBuilder =
-                new PromptBuilder()
-                        .addLine("Recite a haiku about recursion.");
+            // https://ollama4j.github.io/ollama4j/intro
+            PromptBuilder promptBuilder =
+                    new PromptBuilder()
+                            .addLine("Recite a haiku about recursion.");
 
-        boolean raw = false;
-        OllamaResult response = ollamaAPI.generate(model, promptBuilder.build(), raw, new OptionsBuilder().build());
-        return response.getResponse();
+            boolean raw = false;
+            OllamaResult response = ollamaAPI.generate(model, promptBuilder.build(), raw, new OptionsBuilder().build());
+            return response.getResponse();
+        } catch (Exception e) {
+            return e.getMessage();
+        }
     }
 
+    public String chat(String systemPrompt, String userPrompt) throws OllamaBaseException, IOException, InterruptedException {
+
+        String model = "llama3.2:1b";
+        // https://ollama4j.github.io/ollama4j/intro
+        OllamaChatRequestModel chatRequest = OllamaChatRequestBuilder.getInstance(model)
+                .withMessage(OllamaChatMessageRole.SYSTEM, systemPrompt)
+                .withMessage(OllamaChatMessageRole.USER, userPrompt)
+                .build();
+
+        OllamaResult response = ollamaAPI.chat(chatRequest);
+        return  response.getResponse();
+    }
 }
